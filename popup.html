@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Monitor</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h2>AI Chat Monitor</h2>
+  <label>
+    <input type="checkbox" id="monitorToggle" checked>
+    Enable Monitoring
+  </label>
+
+  <h3>Custom Keywords</h3>
+  <input type="text" id="customKeyword" placeholder="Enter keyword">
+  <button id="addKeyword">Add</button>
+
+  <ul id="keywordList"></ul>
+  
+  <button id="clearKeywords">Clear Keywords</button>
+
+  <script src="popup.js"></script>
+</body>
+</html>
