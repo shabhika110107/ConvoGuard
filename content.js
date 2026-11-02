@@ -10,7 +10,11 @@ const keywords = ["password", "confidential", "leak", "credit card", "secret", "
 function monitorChats() {
   document.addEventListener("input", (event) => {
     const target = event.target;
-    if (target && (target.tagName === "TEXTAREA" || target.tagName === "INPUT")) {
+    if (target && (
+      target.tagName === "TEXTAREA" ||
+      target.tagName === "INPUT" ||
+      target.contentEditable === "true"
+    )) {
       checkMessage(target);
     }
   });
@@ -18,7 +22,7 @@ function monitorChats() {
 
 // Function to check if a message contains sensitive words
 function checkMessage(inputField) {
-  const message = inputField.value.toLowerCase();
+  const message = (inputField.value || inputField.textContent || "").toLowerCase();
   
   for (let keyword of keywords) {
     if (message.includes(keyword)) {
@@ -49,27 +53,24 @@ function showWarningPopup(keyword) {
 
 // Function to send email notification to admin with user's IP
 function sendEmailNotification(flaggedWord) {
-  fetch("https://api64.ipify.org?format=json") // Fetch user's public IP
+  fetch("https://api64.ipify.org?format=json")
     .then(response => response.json())
     .then(data => {
-      const userIP = data.ip; // Extract the IP address
-      
-      emailjs.send(emailServiceID, emailTemplateID, {
-        flagged_word: flaggedWord,
-        user_ip: userIP,
-        user_browser: navigator.userAgent,
-        date_time: new Date().toLocaleString(),
-      }, publicKey)
-      .then(response => {
-        console.log("Email sent successfully:", response);
-      })
-      .catch(error => {
-        console.error("Error sending email:", error);
-      });
+      const userIP = data.ip;
+      try {
+        emailjs.send(emailServiceID, emailTemplateID, {
+          flagged_word: flaggedWord,
+          user_ip: userIP,
+          user_browser: navigator.userAgent,
+          date_time: new Date().toLocaleString(),
+        }, publicKey)
+        .then(response => console.log("Email sent:", response))
+        .catch(error => console.error("EmailJS error:", error));
+      } catch (e) {
+        console.warn("EmailJS blocked by site CSP:", e);
+      }
     })
-    .catch(error => {
-      console.error("Error fetching IP address:", error);
-    });
+    .catch(error => console.error("Error fetching IP:", error));
 }
 
 // Start monitoring chats
