@@ -12,8 +12,7 @@
   "content_scripts": [
     {
       "matches": ["*://*/*"],
-      "js": ["emailjs.min.js", "content.js"],
-      "css": ["content.css"]
+      "js": ["emailjs.min.js", "content.js"]
     }
   ]
 }
