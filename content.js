@@ -1,77 +1,77 @@
-// EmailJS configuration with your credentials
-const emailServiceID = "service_diz31vf";  
-const emailTemplateID = "template_cv44vsi";  
-const publicKey = "iSqzIykI2DWwYvei1";  
+// EmailJS configuration
+const emailServiceID = "service_diz31vf";
+const emailTemplateID = "template_cv44vsi";
+const publicKey = "iSqzIykI2DWwYvei1";
 
-// List of sensitive words to monitor
+// Sensitive keywords to monitor
 const keywords = ["password", "confidential", "leak", "credit card", "secret", "ssn", "api key", "private key"];
 
-// Function to monitor chat input fields
-function monitorChats() {
-  document.addEventListener("input", (event) => {
-    const target = event.target;
-    if (target && (
-      target.tagName === "TEXTAREA" ||
-      target.tagName === "INPUT" ||
-      target.contentEditable === "true"
-    )) {
-      checkMessage(target);
-    }
-  });
-}
-
-// Function to check if a message contains sensitive words
-function checkMessage(inputField) {
-  const message = (inputField.value || inputField.textContent || "").toLowerCase();
-  
+// Check text for sensitive keywords
+function checkMessage(text, element) {
+  const message = text.toLowerCase();
   for (let keyword of keywords) {
     if (message.includes(keyword)) {
-      inputField.style.border = "2px solid red"; // Highlight input field
+      if (element) element.style.outline = "2px solid red";
       showWarningPopup(keyword);
       sendEmailNotification(keyword);
       return;
     }
   }
-
-  inputField.style.border = ""; // Reset border if no flagged words
+  if (element) element.style.outline = "";
 }
 
-// Function to display a warning popup
+// Show warning popup
 function showWarningPopup(keyword) {
-  if (!document.getElementById("chatMonitorWarning")) {
-    const warningBox = document.createElement("div");
-    warningBox.id = "chatMonitorWarning";
-    warningBox.textContent = `⚠️ Warning: Sensitive word detected - "${keyword}". Be careful before sending!`;
+  if (document.getElementById("convoGuardWarning")) return;
 
-    document.body.appendChild(warningBox);
+  const box = document.createElement("div");
+  box.id = "convoGuardWarning";
+  box.textContent = `⚠️ ConvoGuard: Sensitive word detected - "${keyword}". Be careful before sending!`;
+  document.body.appendChild(box);
 
-    setTimeout(() => {
-      warningBox.remove();
-    }, 5000);
-  }
+  setTimeout(() => box.remove(), 5000);
 }
 
-// Function to send email notification to admin with user's IP
+// Send email alert
 function sendEmailNotification(flaggedWord) {
   fetch("https://api64.ipify.org?format=json")
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
-      const userIP = data.ip;
       try {
         emailjs.send(emailServiceID, emailTemplateID, {
           flagged_word: flaggedWord,
-          user_ip: userIP,
+          user_ip: data.ip,
           user_browser: navigator.userAgent,
           date_time: new Date().toLocaleString(),
         }, publicKey)
-        .then(response => console.log("Email sent:", response))
-        .catch(error => console.error("EmailJS error:", error));
+        .then(() => console.log("ConvoGuard: Email sent"))
+        .catch(e => console.warn("ConvoGuard: EmailJS error", e));
       } catch (e) {
-        console.warn("EmailJS blocked by site CSP:", e);
+        console.warn("ConvoGuard: EmailJS blocked by CSP", e);
       }
     })
-    .catch(error => console.error("Error fetching IP:", error));
+    .catch(e => console.warn("ConvoGuard: IP fetch failed", e));
 }
 
-// Start monitoring chats
-monitorChats();
+// Monitor normal input/textarea fields
+document.addEventListener("input", (event) => {
+  const t = event.target;
+  if (t.tagName === "TEXTAREA" || t.tagName === "INPUT") {
+    checkMessage(t.value, t);
+  }
+});
+
+// Monitor contenteditable divs (ChatGPT, etc.) using MutationObserver
+const observer = new MutationObserver(() => {
+  const editables = document.querySelectorAll("[contenteditable='true']");
+  editables.forEach(el => {
+    const text = el.innerText || el.textContent || "";
+    checkMessage(text, el);
+  });
+});
+
+observer.observe(document.body, {
+  childList: true,
+  subtree: true,
+  characterData: true
+});
