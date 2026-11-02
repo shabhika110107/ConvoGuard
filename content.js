@@ -37,18 +37,13 @@ function showWarningPopup(keyword) {
   if (!document.getElementById("chatMonitorWarning")) {
     const warningBox = document.createElement("div");
     warningBox.id = "chatMonitorWarning";
-    warningBox.innerHTML = `
-      <div class="warning-popup">
-        ⚠️ Warning: Your message contains a sensitive word - <strong>${keyword}</strong>.
-        Be careful before sending!
-      </div>
-    `;
-    
+    warningBox.textContent = `⚠️ Warning: Sensitive word detected - "${keyword}". Be careful before sending!`;
+
     document.body.appendChild(warningBox);
-    
+
     setTimeout(() => {
       warningBox.remove();
-    }, 5000); // Auto-remove warning after 5 seconds
+    }, 5000);
   }
 }
 
@@ -76,24 +71,6 @@ function sendEmailNotification(flaggedWord) {
       console.error("Error fetching IP address:", error);
     });
 }
-
-// Inject styles for the warning popup
-const style = document.createElement("style");
-style.innerHTML = `
-  .warning-popup {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: rgba(255, 0, 0, 0.9);
-    color: white;
-    padding: 15px;
-    border-radius: 8px;
-    font-size: 14px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    z-index: 9999;
-  }
-`;
-document.head.appendChild(style);
 
 // Start monitoring chats
 monitorChats();
